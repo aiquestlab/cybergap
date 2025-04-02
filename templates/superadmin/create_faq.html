@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Create FAQ{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('superadmin.faq') }}">Manage FAQ</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create FAQ</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">Create New FAQ</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('superadmin.create_faq') }}">
+                        <div class="mb-3">
+                            <label for="question" class="form-label">Question</label>
+                            <input type="text" class="form-control" id="question" name="question" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="answer" class="form-label">Answer</label>
+                            <textarea class="form-control" id="answer" name="answer" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select a category</option>
+                                <option value="General">General</option>
+                                <option value="Account">Account</option>
+                                <option value="Billing">Billing</option>
+                                <option value="Subscription">Subscription</option>
+                                <option value="Technical">Technical</option>
+                                <option value="CMMC">CMMC</option>
+                                <option value="Compliance">Compliance</option>
+                                <option value="Security">Security</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="featured" name="featured">
+                            <label class="form-check-label" for="featured">Featured FAQ (shown on dashboard)</label>
+                        </div>
+                        <div class="text-end">
+                            <a href="{{ url_for('superadmin.faq') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create FAQ</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize rich text editor for answer
+    $(document).ready(function() {
+        $('#answer').summernote({
+            height: 200,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+    });
+</script>
+{% endblock %}

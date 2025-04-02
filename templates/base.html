@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/54f75f_9a326c563412421d94bce74e9b591681~mv2.png/v1/fill/w_192,h_192,lg_1,usm_0.66_1.00_0.01/54f75f_9a326c563412421d94bce74e9b591681~mv2.png">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='assessment/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Added Chart.js CDN -->
+    <script src="{{ url_for('static', filename='assessment/script.js') }}"></script>
+
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background: #242933;
+            padding: 20px;
+            position: fixed;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #ffffff;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: width 0.3s ease; /* Add transition for width */
+            overflow-x: hidden; /* Hide horizontal overflow when collapsing */
+        }
+
+        /* Collapsed Sidebar Styles */
+        body.sidebar-collapsed .sidebar {
+            width: 80px; /* Collapsed width */
+        }
+
+        body.sidebar-collapsed .sidebar .logo span,
+        body.sidebar-collapsed .sidebar .nav span.nav-text,
+        body.sidebar-collapsed .sidebar .user-greeting {
+            display: none; /* Hide text when collapsed */
+        }
+
+        body.sidebar-collapsed .sidebar .nav a {
+            justify-content: center; /* Center icons */
+            padding: 15px 10px; /* Adjust padding */
+        }
+         body.sidebar-collapsed .sidebar .nav a i {
+             margin-right: 0; /* Remove margin from icon */
+             font-size: 1.2em; /* Slightly larger icons */
+         }
+
+        body.sidebar-collapsed .main-content {
+            margin-left: 80px; /* Adjust main content margin */
+        }
+
+        /* Toggle Button Style */
+        #sidebarToggle {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.1em;
+            cursor: pointer;
+            padding: 10px;
+            margin-bottom: 11px;
+            display: block; /* Make it block to center easily */
+            margin-left: auto;
+            margin-right: auto;
+            transition: transform 0.3s ease;
+        }
+         body.sidebar-collapsed #sidebarToggle {
+             transform: rotate(180deg); /* Optional: Rotate icon when collapsed */
+         }
+
+
+        /* Avatar styling */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+
+        .dropdown-toggle::after {
+            display: none;  /* Hide the dropdown arrow */
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .nav {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav li {
+            padding: 10px 0;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #ffffff;
+            display: flex; /* Use flexbox for alignment */
+            align-items: center; /* Vertically center icon and text */
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease, color 0.2s ease; /* Smooth transitions */
+            white-space: nowrap; /* Prevent text wrapping */
+        }
+         .nav a i {
+             margin-right: 10px; /* Space between icon and text */
+             width: 20px; /* Fixed width for icon alignment */
+             text-align: center;
+         }
+         .nav span.nav-text {
+             transition: opacity 0.2s ease; /* Fade text */
+         }
+
+
+        .nav a.active, .nav a:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 130px; /* Default margin */
+            padding: 5px;
+            /* margin-right: -110px; */ /* Removed potentially problematic negative margin */
+            transition: margin-left 0.3s ease; /* Add transition for margin */
+            /* width: calc(100% - 250px); Adjust width based on sidebar */
+            position: relative; /* Ensure it respects flow */
+            margin-right: -6%;
+        }
+         body.sidebar-collapsed .main-content {
+             width: calc(100% - 80px); /* Adjust width when collapsed */
+         }
+
+
+        /* Top bar styling */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0.5rem;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .bell-icon {
+            margin: 0 20px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Avatar and dropdown styling */
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .dropdown-toggle {
+            padding: 0;
+            background: none;
+            border: none;
+        }
+
+        .dropdown-toggle:hover,
+        .dropdown-toggle:focus {
+            background: none;
+            border: none;
+            box-shadow: none;
+        }
+
+        /* Dashboard Stats */
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .card h2 {
+            margin: 5px 0;
+        }
+
+        .growth {
+            color: green;
+            font-weight: bold;
+        }
+
+        /* Bottom Section */
+        .bottom-section {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .recent-activity, .team-members {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .recent-activity ul, .team-members ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recent-activity li, .team-members li {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .recent-activity .time {
+            margin-left: auto;
+            color: gray;
+        }
+
+        .team-members img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .navbar .dropdown-menu {
+            right: 0;
+            left: auto;
+        }
+
+        
+
+       
+      
+    </style>
+     {% block styles %}{% endblock %}
+</head>
+<body>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            {# Toggle Button #}
+            <button id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+            <h3 class="logo" style="color: #ffffff; padding: 1px; text-align: center; margin-top: -9%;">
+                <i>
+                    <img src="https://static.wixstatic.com/media/54f75f_9a326c563412421d94bce74e9b591681~mv2.png/v1/fill/w_192,h_192,lg_1,usm_0.66_1.00_0.01/54f75f_9a326c563412421d94bce74e9b591681~mv2.png" alt="icon" style="width: 50%; height: 50%;">
+                </i><span class="nav-text">CyberGap</span>
+            </h3>
+            <ul class="nav">
+            <p class="user-greeting" style="color: #ffffff; padding-left: 20%; white-space: nowrap;">
+                Hello <span class="nav-text">{{ current_user.name }}!</span>
+            </p>
+
+            <li><a href="{{ url_for('dashboard.home') }}" class="{{ 'active' if request.endpoint == 'dashboard.home' else '' }}">
+                <i class="fas fa-home"></i> <span class="nav-text">Dashboard</span>
+            </a></li>
+            {# Add links to assessment levels #}
+            <li><a href="{{ url_for('assessment.level1') }}" class="{{ 'active' if request.endpoint == 'assessment.level1' else '' }}">
+                <i class="fas fa-clipboard-list"></i> <span class="nav-text">Level 1 Assessment</span>
+            </a></li>
+             <li><a href="{{ url_for('assessment.level2') }}" class="{{ 'active' if request.endpoint == 'assessment.level2' else '' }}">
+                 <i class="fas fa-clipboard-check"></i> <span class="nav-text">Level 2 Assessment</span>
+             </a></li>
+
+            {# Example placeholder link #}
+            <li><a href="https://cybercomply.app/"><i class="fas fa-tools"></i> <span class="nav-text">CyberComply GRC</span></a></li>
+
+
+            {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('auth.logout') }}">
+                <i class="fas fa-sign-out-alt"></i> <span class="nav-text">Logout</span>
+            </a></li>
+            {% endif %}
+            </ul>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            {% if current_user.is_authenticated %}
+            <header class="top-bar">
+                <span class="bell-icon">🔔</span>
+                <div class="dropdown">
+                    <div class="user-profile dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="profileDropdown">
+                        <div class="avatar-container">
+                            <img src="{% if current_user.is_authenticated and current_user.profile_picture_url %}{{ current_user.profile_picture_url }}{% else %}https://img.icons8.com/?size=100&id=ly1mHXi5Yybw&format=png&color=000000{% endif %}" 
+                                 alt="User" 
+                                 class="avatar"
+                                 onerror="this.src='https://img.icons8.com/?size=100&id=ly1mHXi5Yybw&format=png&color=000000'">
+                        </div>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                     
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                    </ul>
+                </div>
+            </header>
+            {% endif %}
+
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const body = document.body;
+            const sidebarStateKey = 'sidebarCollapsed';
+
+            // Function to apply state from localStorage
+            function applySidebarState() {
+                if (localStorage.getItem(sidebarStateKey) === 'true') {
+                    body.classList.add('sidebar-collapsed');
+                } else {
+                    body.classList.remove('sidebar-collapsed');
+                }
+            }
+
+            // Apply state on initial load
+            applySidebarState();
+
+            // Toggle sidebar on button click
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    body.classList.toggle('sidebar-collapsed');
+                    // Save the new state to localStorage
+                    localStorage.setItem(sidebarStateKey, body.classList.contains('sidebar-collapsed'));
+                });
+            }
+        });
+    </script>
+
+
+</body>
+</html>
+
+    
+    <script
+      data-chat-icon="magic"
+      data-brand-image-url="https://static.wixstatic.com/media/54f75f_9a326c563412421d94bce74e9b591681%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/54f75f_9a326c563412421d94bce74e9b591681%7Emv2.png"
+      data-no-sponsor = "CyberComply App"
+      data-assistant-name="CyberAI"
+      data-assistant-icon="https://static.wixstatic.com/media/54f75f_9a326c563412421d94bce74e9b591681%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/54f75f_9a326c563412421d94bce74e9b591681%7Emv2.png"
+      data-sponsor-text = "CyberComply.us"
+      data-embed-id="39662a8c-97e8-4c1b-b113-b2d064ab3692"
+      data-base-api-url="https://ai.cybercomply.app/api/embed"
+      src="https://ai.cybercomply.app/embed/anythingllm-chat-widget.min.js">
+    </script>
+
+

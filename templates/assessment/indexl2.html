@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}CMMC Level 2 Gap Assessment & SPRS Tool{% endblock %}
+
+
+
+{% block content %}
+
+    <div id="app">
+        <header class="header">           
+          
+        </header>
+
+        <h1>CMMC Level 2 Gap Assessment & SPRS Calculator</h1>
+        
+        <p><strong>Disclaimer:</strong> This tool is for informational purposes only. Always consult official DoD guidance (NIST SP 800-171 r2, DoD Assessment Methodology) and CMMC professionals for formal assessments and accurate SPRS reporting.</p>
+         <!-- 3. Summary & Reporting Section -->
+         <section id="summary">
+            <h2> Assessment Summary & Reporting</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start;">
+                <div id="summary-stats" style="flex: 1; min-width: 300px;">
+                    <p>Loading summary...</p>
+                </div>
+                <div id="summary-chart-container" style="flex: 0 1 300px; /* Flex basis for chart size */">
+                     <canvas id="summaryChart"></canvas>
+                </div>
+            </div>
+             <hr>
+             <div style="display: flex; flex-wrap: wrap; gap: 30px;">
+                 <div style="flex: 1; min-width: 300px;">
+                     <h3 style="margin-top: 0;">Identified Gaps (Controls with Deficient Criteria):</h3>
+                     <div id="summary-gaps"><ul><li>No gaps identified yet.</li></ul></div>
+                </div>
+                 <div style="flex: 1; min-width: 300px;">
+                     <h3 style="margin-top: 0;">Not Applicable Controls (Where All Criteria are N/A):</h3>
+                     <div id="summary-na"><ul><li>No controls marked N/A yet.</li></ul></div>
+                 </div>
+             </div>
+             <hr>
+            <button id="generate-report-btn" class="action-btn">Generate Detailed Report</button>
+            <button id="clear-data-btn">Clear All Data</button>
+        </section>
+        <!-- 1. System Scoping Section -->
+        <section id="scoping">
+            <h2> System Scoping - Assets Handling CUI/FCI</h2>
+            <p>List assets (hardware, software, data, people, facilities) potentially involved with Controlled Unclassified Information (CUI) or Federal Contract Information (FCI). Mark those that store, process, or transmit CUI/FCI as "In Scope".</p>
+            <form id="asset-form">
+                 <div>
+                    <select id="asset-type" required><option value="Hardware">Hardware</option><option value="Software">Software</option><option value="Data">Data</option><option value="People">People</option><option value="Facility">Facility</option></select>
+                    <input type="text" id="asset-name" placeholder="Asset Name / Description" required>
+                    <label><input type="checkbox" id="asset-in-scope"> Handles CUI/FCI (In Scope)</label>
+                    <button type="submit">Add Asset</button>
+                 </div>
+            </form>
+            <div id="asset-list">
+                 <h3>Asset Inventory</h3>
+                 <ul id="assets"><li>No assets added yet.</li></ul>
+            </div>
+        </section>
+
+        <!-- 2. Gap Assessment Section -->
+        <section id="gap-assessment">
+            <h2> Gap Assessment (CMMC Level 2 Practices & Criteria)</h2>
+            <p>Assess each criterion for the CMMC Level 2 practices against your in-scope system components. Controls are grouped by domain below. Use the filter to view specific domains.</p>
+
+            <!-- Domain Filter Dropdown -->
+            <div class="filter-container">
+                <label for="domain-filter">Filter by Domain:</label>
+                <select id="domain-filter">
+                    <option value="ALL">All Domains</option>
+                    <!-- Domain options will be populated by JS -->
+                </select>
+            </div>
+
+            <div id="assessment-controls">
+                <!-- Controls grouped by domain and criteria will be rendered here by JS -->
+                <p>Loading controls...</p>
+            </div>
+        </section>
+
+       
+
+        <!-- 4. Report Output Section -->
+        <section id="report-output">
+            <!-- Report content will be injected here -->
+         </section>
+
+     </div>
+
+     {# Use url_for to link to static files #}
+     
+ </body>
+
+ {% endblock %}
+

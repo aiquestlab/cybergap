@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Create CMMC Tutorial{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('superadmin.playbooks') }}">Manage Playbooks</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Create Tutorial</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">Create New Tutorial</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('superadmin.create_playbook') }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select a category</option>
+                                <option value="Access Control">Access Control</option>
+                                <option value="Asset Management">Asset Management</option>
+                                <option value="Audit and Accountability">Audit and Accountability</option>
+                                <option value="Configuration Management">Configuration Management</option>
+                                <option value="Identification and Authentication">Identification and Authentication</option>
+                                <option value="Incident Response">Incident Response</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Risk Assessment">Risk Assessment</option>
+                                <option value="Security Assessment">Security Assessment</option>
+                                <option value="System and Communications Protection">System and Communications Protection</option>
+                                <option value="System and Information Integrity">System and Information Integrity</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="level" class="form-label">CMMC Level</label>
+                            <select class="form-select" id="level" name="level" required>
+                                <option value="">Select a level</option>
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Content</label>
+                            <textarea class="form-control" id="content" name="content" rows="15" required></textarea>
+                        </div>
+                        <div class="text-end">
+                            <a href="{{ url_for('superadmin.playbooks') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Tutorial</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize rich text editor for content
+    $(document).ready(function() {
+        $('#content').summernote({
+            height: 300,
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture']],
+                ['view', ['fullscreen', 'codeview', 'help']]
+            ]
+        });
+    });
+</script>
+{% endblock %}

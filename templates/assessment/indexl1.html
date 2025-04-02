@@ -1,0 +1,782 @@
+{% extends "base.html" %}
+
+{% block title %}CMMC Level 1 Scoping & Gap Assessment Tool{% endblock %}
+
+{% block styles %}
+    <style>
+        /* Basic Styling (Same as before) */
+        body {
+            font-family: sans-serif;
+            line-height: 1.1;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            text-align: center;
+        }
+
+        #app {
+            max-width: 99% !important;
+            margin: 20px auto;
+            background: #fff;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1, h2, h3 {
+            color: #0056a0; /* CMMC-like blue */
+        }
+        h1, h2 {
+             border-bottom: 2px solid #eee;
+             padding-bottom: 10px;
+             margin-bottom: 20px;
+        }
+         h3 { margin-top: 25px; margin-bottom: 10px; }
+
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        /* Forms & Inputs (Same as before) */
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+        }
+
+        button {
+            background-color: #0056a0;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            margin-right: 5px; /* Add some space between buttons */
+        }
+
+        button:hover {
+            background-color: #003d73;
+        }
+
+         button.action-btn { /* Style for main action buttons like Generate Report */
+             background-color: #17a2b8; /* Teal */
+         }
+         button.action-btn:hover{
+              background-color: #117a8b;
+         }
+
+        button.remove-btn {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        button.remove-btn:hover {
+            background-color: #c82333;
+        }
+
+        button#clear-data-btn {
+            background-color: #ffc107;
+            color: #333;
+        }
+        button#clear-data-btn:hover {
+            background-color: #e0a800;
+        }
+
+        /* Tables (Same as before) */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        /* Specific Element Styles (Mostly same as before) */
+        #asset-form div, #scoping li div {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        #asset-form div input[type="text"] { flex-grow: 1; }
+        #asset-form div select { width: 150px; flex-shrink: 0;}
+        #asset-form div input[type="checkbox"] { width: auto; margin: 0 5px 0 0; }
+        #asset-form div label { margin-bottom: 0; }
+
+        #asset-list ul {
+             list-style: none;
+             padding: 0;
+             margin: 0;
+        }
+         #asset-list li {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #asset-list li.in-scope {
+            border-left: 5px solid #28a745;
+        }
+         #asset-list li span {
+            margin-right: 10px;
+        }
+        .asset-info{
+            flex-grow: 1;
+        }
+         .asset-type {
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px;
+        }
+
+        .status-met { color: #28a745; font-weight: bold; }
+        .status-gap { color: #dc3545; font-weight: bold; }
+        .status-tbd { color: #6c757d; font-weight: bold; }
+
+        #summary ul {
+            list-style: disc;
+            padding-left: 20px;
+        }
+        #summary li {
+           margin-bottom: 5px;
+        }
+         #summary-gaps li {
+             color: #dc3545;
+         }
+
+         /* --- Report Specific Styles --- */
+         #report-output {
+            margin-top: 30px;
+            padding: 25px;
+            border: 1px solid #ccc;
+            background-color: #fdfdfd;
+            border-radius: 5px;
+            display: none; /* Hide initially */
+         }
+         #report-output h2 {
+             text-align: center;
+             margin-bottom: 25px;
+             border-bottom: none;
+         }
+          #report-output h3 {
+             border-bottom: 1px solid #eee;
+             padding-bottom: 5px;
+          }
+          #report-output table {
+              margin-bottom: 20px;
+          }
+          #report-output .report-meta {
+              font-size: 0.9em;
+              color: #666;
+              text-align: center;
+              margin-bottom: 20px;
+          }
+          #report-output ul {
+              list-style: disc;
+              padding-left: 30px;
+          }
+           #report-output .report-controls-table td:nth-child(1) { width: 15%; } /* ID */
+           #report-output .report-controls-table td:nth-child(2) { width: 45%; } /* Name */
+           #report-output .report-controls-table td:nth-child(3) { width: 10%; } /* Status */
+           #report-output .report-controls-table td:nth-child(4) { width: 30%; } /* Notes */
+           #report-output .report-notes {
+               white-space: pre-wrap; /* Preserve line breaks in notes */
+               word-wrap: break-word; /* Break long words */
+               font-size: 0.9em;
+           }
+
+
+        /* Responsive tweaks (Same as before) */
+         @media (max-width: 768px) {
+            /* ... existing responsive styles ... */
+            #asset-form div { flex-direction: column; align-items: stretch; }
+            #asset-list li { flex-direction: column; align-items: flex-start; }
+            .remove-btn { margin-left: 0; margin-top: 10px;}
+            th, td { font-size: 0.9em; padding: 8px; }
+         }
+
+        /* --- Print Specific Styles --- */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #fff; /* Ensure white background for printing */
+                color: #000; /* Ensure black text */
+                font-size: 10pt; /* Adjust base font size for print */
+            }
+            #app {
+                box-shadow: none;
+                margin: 0;
+                padding: 10mm; /* Add margins for printing */
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .sidebar,
+            .top-bar,
+            #sidebarToggle /* Hide toggle button */ {
+                display: none !important; /* Hide sidebar and top bar */
+            }
+            .main-content {
+                margin-left: 0 !important; /* Remove left margin */
+                width: 100% !important; /* Take full width */
+                padding: 10mm; /* Add some padding for print margins */
+                box-shadow: none; /* Remove shadows */
+                border: none; /* Remove borders */
+            }
+            .container {
+                 max-width: 100%; /* Allow container to expand */
+                 padding: 0;
+            }
+
+
+            /* Hide elements not part of the report */
+             #scoping, #gap-assessment, #summary > h2, #summary > div#summary-stats, #summary > h3, #summary > ul#summary-gaps, #summary > button {
+                 display: none !important;
+             }
+             /* Hide the "Print Report" button itself in the print view */
+             #print-report-btn {
+                 display: none !important;
+             }
+
+             #report-output {
+                 display: block !important; /* Ensure report section is visible */
+                 border: none;
+                 padding: 0;
+                 margin: 0;
+                 background-color: #fff;
+             }
+             #report-output h2, #report-output h3 {
+                 color: #000;
+                 border-bottom: 1px solid #999;
+                 page-break-after: avoid;
+             }
+              #report-output h2 { font-size: 16pt; }
+              #report-output h3 { font-size: 12pt; }
+              #report-output table { font-size: 9pt; margin-top: 10px; }
+              #report-output th, #report-output td {
+                 border: 1px solid #ccc;
+                 padding: 5px;
+              }
+              #report-output th { background-color: #eee; }
+              #report-output ul { padding-left: 20px; }
+              #report-output li { margin-bottom: 3px;}
+             #report-output .report-notes { font-size: 8.5pt;}
+
+            /* Try to prevent elements from breaking across pages */
+            table, tr, td, th, li, p {
+                page-break-inside: avoid;
+            }
+             h2, h3 { page-break-after: avoid; }
+
+             
+         }
+
+    </style>
+
+{% endblock %}
+
+{% block content %}
+<body>
+
+    <div id="app">
+        <h1>CMMC Level 1 Scoping & Gap Assessment</h1>
+        <p style="text-align: center;">This tool helps scope systems handling Federal Contract Information (FCI) and assess CMMC 2.0 Level 1 compliance (17 Practices).</p>
+
+        <!-- System Scoping Section (Same as before) -->
+        <section id="scoping">
+             <h2>System Scoping - Assets Handling FCI</h2>
+             <p>List all assets potentially involved with FCI. Mark those that store, process, or transmit FCI as "In Scope".</p>
+             <form id="asset-form">
+                <div>
+                    <select id="asset-type" required>
+                         <option value="Hardware">Hardware</option>
+                         <option value="Software">Software</option>
+                         <option value="Data">Data</option>
+                         <option value="People">People</option>
+                         <option value="Facility">Facility</option>
+                    </select>
+                    <input type="text" id="asset-name" placeholder="Asset Name / Description" required>
+                    <label>
+                        <input type="checkbox" id="asset-in-scope"> Handles FCI (In Scope)
+                    </label>
+                    <button type="submit">Add Asset</button>
+                </div>
+             </form>
+             <div id="asset-list">
+                <h3>Asset Inventory</h3>
+                 <ul id="assets"></ul>
+             </div>
+        </section>
+
+         <!-- Summary Section (Added Generate Report button) -->
+         <section id="summary">
+            <h2>Assessment Summary & Reporting</h2>
+            <div id="summary-stats">
+                <!-- Summary stats will be shown here -->
+            </div>
+             <h3>Identified Gaps:</h3>
+            <ul id="summary-gaps">
+                <li>No gaps identified yet.</li>
+            </ul>
+             <button id="generate-report-btn" class="action-btn">Generate Report</button>
+             <button id="clear-data-btn">Clear All Data</button>
+        </section>
+
+        <!-- Gap Assessment Section (Same as before) -->
+        <section id="gap-assessment">
+            <h2>Gap Assessment (CMMC 2.0 Level 1 Practices)</h2>
+            <p>Assess each practice against your in-scope system components.</p>
+            <table id="controls-table">
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Practice Name</th><th>Status</th><th>Notes / Evidence</th>
+                    </tr>
+                </thead>
+                <tbody id="controls-tbody"></tbody>
+            </table>
+        </section>
+
+       
+
+        <!-- NEW: Report Output Section -->
+        <section id="report-output">
+             <!-- Report content will be injected here by JavaScript -->
+             <!-- Includes a "Print Report" button -->
+        </section>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CMMC L1 Controls Data (Same as before) ---
+            const cmmcLevel1Controls = [
+                { id: "AC.L1-3.1.1", name: "Limit information system access to authorized users...", status: "TBD", notes: "" },
+                { id: "AC.L1-3.1.2", name: "Limit information system access to permitted transactions/functions...", status: "TBD", notes: "" },
+                { id: "AC.L1-3.1.20", name: "Verify/control/limit connections to external systems.", status: "TBD", notes: "" },
+                { id: "AC.L1-3.1.22", name: "Control information posted on publicly accessible systems.", status: "TBD", notes: "" },
+                { id: "IA.L1-3.5.1", name: "Identify system users/processes/devices.", status: "TBD", notes: "" },
+                { id: "IA.L1-3.5.2", name: "Authenticate users/processes/devices.", status: "TBD", notes: "" },
+                { id: "MP.L1-3.8.1", name: "Sanitize/destroy media containing FCI before disposal/reuse.", status: "TBD", notes: "" },
+                { id: "PE.L1-3.10.1", name: "Limit physical access to systems/equipment/environments.", status: "TBD", notes: "" },
+                { id: "PE.L1-3.10.2", name: "Escort visitors and monitor activity.", status: "TBD", notes: "" },
+                { id: "PE.L1-3.10.3", name: "Maintain audit logs of physical access.", status: "TBD", notes: "" },
+                { id: "PE.L1-3.10.4", name: "Control and manage physical access devices.", status: "TBD", notes: "" },
+                { id: "SC.L1-3.13.1", name: "Monitor/control/protect communications at boundaries.", status: "TBD", notes: "" },
+                { id: "SC.L1-3.13.5", name: "Implement subnetworks for publicly accessible components.", status: "TBD", notes: "" },
+                { id: "SI.L1-3.14.1", name: "Identify/report/correct system flaws.", status: "TBD", notes: "" },
+                { id: "SI.L1-3.14.2", name: "Provide protection from malicious code.", status: "TBD", notes: "" },
+                { id: "SI.L1-3.14.4", name: "Update malicious code protection.", status: "TBD", notes: "" },
+                { id: "SI.L1-3.14.5", name: "Perform periodic/real-time scans for malicious code.", status: "TBD", notes: "" }
+                // Shortened names for brevity in the main table, full names can be in report
+            ];
+
+            // --- State Management (Same as before) ---
+            let assets = [];
+            let controls = JSON.parse(JSON.stringify(cmmcLevel1Controls));
+
+            // --- DOM Elements (Added report elements) ---
+            const assetForm = document.getElementById('asset-form');
+            const assetTypeInput = document.getElementById('asset-type');
+            const assetNameInput = document.getElementById('asset-name');
+            const assetInScopeInput = document.getElementById('asset-in-scope');
+            const assetsList = document.getElementById('assets');
+            const controlsTbody = document.getElementById('controls-tbody');
+            const summaryStatsDiv = document.getElementById('summary-stats');
+            const summaryGapsList = document.getElementById('summary-gaps');
+            const clearDataBtn = document.getElementById('clear-data-btn');
+            const generateReportBtn = document.getElementById('generate-report-btn'); // New button
+            const reportOutputDiv = document.getElementById('report-output'); // New report area
+
+            // --- Local Storage Keys (Same as before) ---
+            const ASSETS_STORAGE_KEY = 'cmmcL1_assets';
+            const CONTROLS_STORAGE_KEY = 'cmmcL1_controls';
+
+             // --- Utility: Escape HTML ---
+             function escapeHtml(unsafe) {
+                 // (Same function as before)
+                 if (unsafe === null || typeof unsafe === 'undefined') return '';
+                 return unsafe
+                      .toString()
+                      .replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+             }
+
+             // --- Utility: Get Status Class ---
+             function getStatusClass(status) {
+                 switch(status) {
+                     case 'Met': return 'status-met';
+                     case 'Gap': return 'status-gap';
+                     default: return 'status-tbd';
+                 }
+             }
+
+            // --- Core Functions (Load, Save, RenderAssets, RenderControls, AddAsset, RemoveAsset, UpdateControlStatus, UpdateControlNotes, UpdateSummary, ClearAllData) ---
+            // (These functions remain largely the same as before)
+
+            // Load data from localStorage
+            function loadData() {
+                const storedAssets = localStorage.getItem(ASSETS_STORAGE_KEY);
+                const storedControls = localStorage.getItem(CONTROLS_STORAGE_KEY);
+                if (storedAssets) assets = JSON.parse(storedAssets); else assets = [];
+                if (storedControls) {
+                     const loadedControls = JSON.parse(storedControls);
+                     controls = cmmcLevel1Controls.map(defaultControl => {
+                         const savedControl = loadedControls.find(c => c.id === defaultControl.id);
+                         // Ensure full name is present even if saved with shortened name
+                         const fullNameControl = cmmcLevel1Controls_FullNames.find(fc => fc.id === defaultControl.id);
+                         const base = savedControl ? { ...defaultControl, status: savedControl.status, notes: savedControl.notes } : defaultControl;
+                         return { ...base, name: fullNameControl ? fullNameControl.name : base.name }; // Merge full name
+                     });
+                } else {
+                     controls = JSON.parse(JSON.stringify(cmmcLevel1Controls_FullNames)); // Load full names initially
+                }
+            }
+
+            // Save data to localStorage
+            function saveData() {
+                localStorage.setItem(ASSETS_STORAGE_KEY, JSON.stringify(assets));
+                // Save only essential data, not potentially large full names every time
+                const controlsToSave = controls.map(c => ({ id: c.id, status: c.status, notes: c.notes }));
+                localStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify(controlsToSave));
+            }
+
+             // Render the asset list
+            function renderAssets() {
+                assetsList.innerHTML = '';
+                 if (assets.length === 0) {
+                     assetsList.innerHTML = '<li>No assets added yet.</li>';
+                 } else {
+                    assets.forEach(asset => {
+                        const li = document.createElement('li');
+                        li.dataset.id = asset.id;
+                        li.className = asset.inScope ? 'in-scope' : '';
+                        li.innerHTML = `
+                            <div class="asset-info">
+                                <span class="asset-type">[${asset.type}]</span>
+                                <span>${escapeHtml(asset.name)}</span>
+                                ${asset.inScope ? '<strong>(In Scope - Handles FCI)</strong>' : '(Out of Scope)'}
+                            </div>
+                            <button class="remove-btn" data-id="${asset.id}">Remove</button>
+                        `;
+                        assetsList.appendChild(li);
+                    });
+                 }
+                updateSummary();
+            }
+
+            // Render the controls table
+            function renderControls() {
+                controlsTbody.innerHTML = '';
+                controls.forEach((control, index) => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.id = control.id;
+                    // Use the potentially shortened name for the overview table
+                    const displayControl = cmmcLevel1Controls.find(c => c.id === control.id) || control;
+                    tr.innerHTML = `
+                        <td>${control.id}</td>
+                        <td>${escapeHtml(displayControl.name)}</td>
+                        <td>
+                            <select class="status-select" data-id="${control.id}">
+                                <option value="TBD" ${control.status === 'TBD' ? 'selected' : ''}>Not Assessed</option>
+                                <option value="Met" ${control.status === 'Met' ? 'selected' : ''}>Met</option>
+                                <option value="Gap" ${control.status === 'Gap' ? 'selected' : ''}>Gap</option>
+                            </select>
+                        </td>
+                        <td>
+                            <textarea class="notes-input" data-id="${control.id}" placeholder="Add notes or evidence location...">${escapeHtml(control.notes)}</textarea>
+                        </td>
+                    `;
+                    controlsTbody.appendChild(tr);
+                });
+                updateSummary();
+            }
+
+             // Add a new asset
+            function addAsset(event) {
+                event.preventDefault();
+                const type = assetTypeInput.value;
+                const name = assetNameInput.value.trim();
+                const inScope = assetInScopeInput.checked;
+                if (!name) { alert("Please enter an asset name."); return; }
+                const newAsset = { id: Date.now().toString(), type: type, name: name, inScope: inScope };
+                assets.push(newAsset);
+                assetNameInput.value = ''; assetInScopeInput.checked = false; assetTypeInput.value = 'Hardware';
+                saveData(); renderAssets();
+            }
+
+            // Remove an asset
+            function removeAsset(id) {
+                assets = assets.filter(asset => asset.id !== id);
+                saveData(); renderAssets();
+            }
+
+             // Update control status
+            function updateControlStatus(id, status) {
+                const control = controls.find(c => c.id === id);
+                if (control) { control.status = status; saveData(); updateSummary(); }
+            }
+
+            // Update control notes
+            function updateControlNotes(id, notes) {
+                const control = controls.find(c => c.id === id);
+                if (control) { control.notes = notes; saveData(); } // Save on note change
+            }
+
+             // Update the summary section
+            function updateSummary() {
+                 const totalAssets = assets.length;
+                 const inScopeAssets = assets.filter(a => a.inScope).length;
+                 const controlsMet = controls.filter(c => c.status === 'Met').length;
+                 const controlsGap = controls.filter(c => c.status === 'Gap').length;
+                 const controlsTBD = controls.filter(c => c.status === 'TBD').length;
+                 const totalControls = controls.length;
+                 let completionPercentage = totalControls > 0 ? Math.round(((controlsMet + controlsGap) / totalControls) * 100) : 0;
+
+                summaryStatsDiv.innerHTML = `
+                    <p><strong>Total Assets Logged:</strong> ${totalAssets}</p>
+                    <p><strong>Assets In Scope (Handling FCI):</strong> ${inScopeAssets}</p>
+                    <hr style="margin: 10px 0;">
+                    <p><strong>Controls Assessed:</strong> ${controlsMet + controlsGap} of ${totalControls} (${completionPercentage}%)</p>
+                    <p><strong class="${getStatusClass('Met')}">Controls Met:</strong> ${controlsMet}</p>
+                    <p><strong class="${getStatusClass('Gap')}">Controls Gap:</strong> ${controlsGap}</p>
+                    <p><strong class="${getStatusClass('TBD')}">Controls Not Assessed:</strong> ${controlsTBD}</p>
+                `;
+
+                 summaryGapsList.innerHTML = '';
+                 const gapControls = controls.filter(c => c.status === 'Gap');
+                 if (gapControls.length === 0) {
+                     summaryGapsList.innerHTML = '<li>No gaps identified yet.</li>';
+                 } else {
+                     gapControls.forEach(control => {
+                         const li = document.createElement('li');
+                         const displayControl = cmmcLevel1Controls.find(c => c.id === control.id) || control; // Use short name for summary list
+                         li.textContent = `${control.id}: ${escapeHtml(displayControl.name)}`;
+                         summaryGapsList.appendChild(li);
+                     });
+                 }
+            }
+
+             // Clear all data
+            function clearAllData() {
+                 if (confirm("Are you sure you want to clear ALL assets and assessment data? This cannot be undone.")) {
+                    assets = [];
+                    controls = JSON.parse(JSON.stringify(cmmcLevel1Controls_FullNames)); // Reset with full names
+                    localStorage.removeItem(ASSETS_STORAGE_KEY);
+                    localStorage.removeItem(CONTROLS_STORAGE_KEY);
+                    renderAssets(); renderControls(); updateSummary();
+                    reportOutputDiv.style.display = 'none'; // Hide report if visible
+                    reportOutputDiv.innerHTML = ''; // Clear report content
+                    alert("All data cleared.");
+                 }
+            }
+
+            // --- NEW: Report Generation ---
+
+            // Store full control names separately for the report
+            const cmmcLevel1Controls_FullNames = [
+                { id: "AC.L1-3.1.1", name: "Limit information system access to authorized users, processes acting on behalf of authorized users, or devices (including other information systems)." },
+                { id: "AC.L1-3.1.2", name: "Limit information system access to the types of transactions and functions that authorized users are permitted to execute." },
+                { id: "AC.L1-3.1.20", name: "Verify and control/limit connections to and use of external information systems." },
+                { id: "AC.L1-3.1.22", name: "Control information posted or processed on publicly accessible information systems." },
+                { id: "IA.L1-3.5.1", name: "Identify information system users, processes acting on behalf of users, or devices." },
+                { id: "IA.L1-3.5.2", name: "Authenticate (or verify) the identities of those users, processes, or devices, as a prerequisite to allowing access to organizational information systems." },
+                { id: "MP.L1-3.8.1", name: "Sanitize or destroy information system media containing Federal Contract Information before disposal or release for reuse." },
+                { id: "PE.L1-3.10.1", name: "Limit physical access to organizational information systems, equipment, and the respective operating environments to authorized individuals." },
+                { id: "PE.L1-3.10.2", name: "Escort visitors and monitor visitor activity." },
+                { id: "PE.L1-3.10.3", name: "Maintain audit logs of physical access." },
+                { id: "PE.L1-3.10.4", name: "Control and manage physical access devices." },
+                { id: "SC.L1-3.13.1", name: "Monitor, control, and protect organizational communications (i.e., information transmitted or received by organizational information systems) at the external boundaries and key internal boundaries of the information systems." },
+                { id: "SC.L1-3.13.5", name: "Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks." },
+                { id: "SI.L1-3.14.1", name: "Identify, report, and correct information and information system flaws in a timely manner." },
+                { id: "SI.L1-3.14.2", name: "Provide protection from malicious code at appropriate locations within organizational information systems." },
+                { id: "SI.L1-3.14.4", name: "Update malicious code protection mechanisms when new releases are available." },
+                { id: "SI.L1-3.14.5", name: "Perform periodic scans of the information system and real-time scans of files from external sources as files are downloaded, opened, or executed." }
+            ];
+
+
+            function generateReport() {
+                // 1. Gather data & stats
+                const reportDate = new Date().toLocaleString();
+                const totalAssets = assets.length;
+                const inScopeAssetsList = assets.filter(a => a.inScope);
+                const controlsMet = controls.filter(c => c.status === 'Met').length;
+                const controlsGap = controls.filter(c => c.status === 'Gap').length;
+                const controlsTBD = controls.filter(c => c.status === 'TBD').length;
+                const totalControls = controls.length;
+                const completionPercentage = totalControls > 0 ? Math.round(((controlsMet + controlsGap) / totalControls) * 100) : 0;
+
+                // 2. Build HTML String for the report content
+                let reportHTML = `
+                    <h2>CMMC Level 1 Gap Assessment Report</h2>
+                    <p class="report-meta">Generated on: ${reportDate}</p>
+                    <button id="print-report-btn" onclick="window.print()" class="action-btn">Print / Save as PDF</button>
+
+                    <h3>Scoping Summary</h3>
+                    <p>Total Assets Logged: ${totalAssets}</p>
+                    <p>Assets In Scope (Handling FCI): ${inScopeAssetsList.length}</p>
+                `;
+
+                if (inScopeAssetsList.length > 0) {
+                    reportHTML += `<h4>In-Scope Assets:</h4><ul>`;
+                    inScopeAssetsList.forEach(asset => {
+                        reportHTML += `<li>[${escapeHtml(asset.type)}] ${escapeHtml(asset.name)}</li>`;
+                    });
+                    reportHTML += `</ul>`;
+                } else {
+                    reportHTML += `<p><em>No assets marked as In Scope.</em></p>`;
+                }
+
+                reportHTML += `
+                    <h3>Assessment Summary</h3>
+                    <p><strong>Controls Assessed:</strong> ${controlsMet + controlsGap} of ${totalControls} (${completionPercentage}%)</p>
+                    <p><strong class="${getStatusClass('Met')}">Controls Met:</strong> ${controlsMet}</p>
+                    <p><strong class="${getStatusClass('Gap')}">Controls Gap:</strong> ${controlsGap}</p>
+                    <p><strong class="${getStatusClass('TBD')}">Controls Not Assessed:</strong> ${controlsTBD}</p>
+
+                    <h3>Identified Gaps</h3>
+                `;
+
+                const gapControls = controls.filter(c => c.status === 'Gap');
+                if (gapControls.length > 0) {
+                    reportHTML += `<ul>`;
+                    gapControls.forEach(control => {
+                         // Find the full name for the report
+                         const fullNameControl = cmmcLevel1Controls_FullNames.find(fc => fc.id === control.id);
+                         const displayName = fullNameControl ? fullNameControl.name : control.name;
+                         reportHTML += `<li><strong>${control.id}:</strong> ${escapeHtml(displayName)}</li>`;
+                    });
+                    reportHTML += `</ul>`;
+                } else {
+                    reportHTML += `<p><em>No gaps identified.</em></p>`;
+                }
+
+                reportHTML += `
+                    <h3>Detailed Control Status</h3>
+                    <table class="report-controls-table">
+                        <thead>
+                            <tr><th>ID</th><th>Practice Name</th><th>Status</th><th>Notes / Evidence</th></tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                // Ensure controls in the report use the full names and current status/notes
+                controls.forEach(controlState => {
+                     const fullNameControl = cmmcLevel1Controls_FullNames.find(fc => fc.id === controlState.id);
+                     const displayName = fullNameControl ? fullNameControl.name : controlState.name; // Fallback just in case
+                     const statusClass = getStatusClass(controlState.status);
+                     const displayStatus = controlState.status === 'TBD' ? 'Not Assessed' : controlState.status;
+
+                     reportHTML += `
+                        <tr>
+                            <td>${controlState.id}</td>
+                            <td>${escapeHtml(displayName)}</td>
+                            <td><span class="${statusClass}">${displayStatus}</span></td>
+                            <td><div class="report-notes">${escapeHtml(controlState.notes)}</div></td>
+                        </tr>
+                     `;
+                });
+
+                reportHTML += `
+                        </tbody>
+                    </table>
+                    <hr>
+                    <p style="text-align:center; font-size: 0.8em; color: #777;">End of Report</p>
+                    <button id="print-report-btn-bottom" onclick="window.print()" class="action-btn">Print / Save as PDF</button>
+                    `; // Added second print button at bottom
+
+                // 3. Inject HTML into the report div and display it
+                reportOutputDiv.innerHTML = reportHTML;
+                reportOutputDiv.style.display = 'block';
+
+                 // 4. Scroll to the report section for better UX
+                 reportOutputDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+
+
+            // --- Event Listeners (Added listener for report generation) ---
+            assetForm.addEventListener('submit', addAsset);
+
+            assetsList.addEventListener('click', (event) => {
+                if (event.target.classList.contains('remove-btn')) {
+                    removeAsset(event.target.dataset.id);
+                }
+            });
+
+            controlsTbody.addEventListener('change', (event) => {
+                if (event.target.classList.contains('status-select')) {
+                    updateControlStatus(event.target.dataset.id, event.target.value);
+                }
+            });
+
+             controlsTbody.addEventListener('input', (event) => {
+                 if (event.target.classList.contains('notes-input')) {
+                     // Simple debounce: wait 500ms after typing stops to save
+                     clearTimeout(event.target.debounceTimer);
+                     event.target.debounceTimer = setTimeout(() => {
+                         updateControlNotes(event.target.dataset.id, event.target.value);
+                     }, 500);
+                 }
+             });
+
+            clearDataBtn.addEventListener('click', clearAllData);
+
+            generateReportBtn.addEventListener('click', generateReport); // NEW Listener
+
+             // Note: The print button inside the report uses an inline onclick="window.print()"
+             // This is simpler than adding dynamic event listeners after report generation.
+
+
+            // --- Initialization ---
+            loadData(); // Load data first
+            renderAssets(); // Render assets based on loaded data
+            renderControls(); // Render controls based on loaded data
+            // updateSummary(); // Implicitly called by render functions
+
+        });
+    </script>
+
+</body>
+
+{% endblock %}
