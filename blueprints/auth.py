@@ -25,7 +25,7 @@ def init_oauth(app):
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard.home'))
+        return redirect(url_for('assessment.level2'))
     
     if request.method == 'POST':
         email = request.form.get('email')
@@ -34,7 +34,7 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('dashboard.home'))
+            return redirect(url_for('assessment.level2'))
         else:
             flash('Invalid email or password', 'error')
             
@@ -43,7 +43,7 @@ def login():
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if current_user.is_authenticated:
-        return redirect(url_for('dashboard.home'))
+        return redirect(url_for('assessment.level2'))
     
     if request.method == 'POST':
         email = request.form.get('email')
@@ -65,7 +65,7 @@ def signup():
         db.session.commit()
         
         login_user(user)
-        return redirect(url_for('dashboard.home'))
+        return redirect(url_for('assessment.level2'))
         
     return render_template('auth/signup.html')
 
@@ -106,7 +106,7 @@ def callback():
         
         db.session.commit()
         login_user(user)
-        return redirect(url_for('dashboard.home'))
+        return redirect(url_for('assessment.level2'))
             
     except Exception as e:
         flash(f'Failed to authenticate: {str(e)}', 'error')

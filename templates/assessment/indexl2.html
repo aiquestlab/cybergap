@@ -63,6 +63,7 @@
             <h2> Gap Assessment (CMMC Level 2 Practices & Criteria)</h2>
             <p>Assess each criterion for the CMMC Level 2 practices against your in-scope system components. Controls are grouped by domain below. Use the filter to view specific domains.</p>
 
+            
             <!-- Domain Filter Dropdown -->
             <div class="filter-container">
                 <label for="domain-filter">Filter by Domain:</label>
@@ -70,6 +71,12 @@
                     <option value="ALL">All Domains</option>
                     <!-- Domain options will be populated by JS -->
                 </select>
+
+                <!-- Toggle All Button -->
+            <div class="toggle-all-container" style="padding-left: 15px;">
+                <button id="toggle-all-controls-btn">Expand All Controls</button>
+            </div>
+
             </div>
 
             <div id="assessment-controls">
@@ -92,4 +99,3 @@
  </body>
 
  {% endblock %}
-

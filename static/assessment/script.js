@@ -935,6 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearDataBtn = document.getElementById('clear-data-btn');
     const reportOutputDiv = document.getElementById('report-output');
     const summaryChartCanvas = document.getElementById('summaryChart'); // Chart canvas element
+    const toggleAllControlsBtn = document.getElementById('toggle-all-controls-btn'); // Toggle button
     let summaryChartInstance = null; // Variable to hold the chart instance
 
     // --- API Endpoints ---
@@ -1822,7 +1823,7 @@ document.addEventListener('DOMContentLoaded', () => {
                              plugins: {
                                  legend: {
                                      position: 'bottom',
-                                 },
+                                 }, // Added comma
                                  title: {
                                      display: true,
                                      text: 'Assessment Criteria Status Summary',
@@ -1893,7 +1894,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, { once: true }); // Ensure listener is added only once
             }
         }
+         
      }
+
+    // --- Toggle All Controls ---
+    function toggleAllControls() {
+        const allDetails = assessmentControlsDiv.querySelectorAll('details');
+        let isAnyClosed = false;
+
+        // Check only visible details based on the current filter
+        allDetails.forEach(details => {
+            if (details.style.display !== 'none' && !details.open) {
+                isAnyClosed = true;
+            }
+        });
+
+        const shouldOpen = isAnyClosed; // If any visible is closed, we should open all visible
+
+        allDetails.forEach(details => {
+            // Only toggle visible details
+            if (details.style.display !== 'none') {
+                if (shouldOpen) {
+                    details.setAttribute('open', '');
+                } else {
+                    details.removeAttribute('open');
+                }
+            }
+        });
+
+        // Update button text
+        toggleAllControlsBtn.textContent = shouldOpen ? 'Collapse All Controls' : 'Expand All Controls';
+    }
 
 
      function clearAllData() {
@@ -1961,8 +1992,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true); // Use capture phase
 
 
-    generateReportBtn.addEventListener('click', generateReport); // Add listener for SPRS report button if needed
-    clearDataBtn.addEventListener('click', clearAllData);
+     generateReportBtn.addEventListener('click', generateReport);
+     clearDataBtn.addEventListener('click', clearAllData);
+     toggleAllControlsBtn.addEventListener('click', toggleAllControls); // Add listener for the toggle button
 
     // --- Initialization ---
     async function initializeApp() {
